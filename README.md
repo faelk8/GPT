@@ -12,3 +12,7 @@ Transformando palavras em Tokens e convertendo de volta incluido Token que marca
 A técina mais utilizada no momento é byte pair econding.
 
 BPE quebra palavras individuais em caracteres.
+
+
+# 02.01-Attention
+Camade de attention que pode ser uma cabeça ou 2 cabeças.
