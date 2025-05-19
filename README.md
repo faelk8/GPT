@@ -16,3 +16,9 @@ BPE quebra palavras individuais em caracteres.
 
 # 02.01-Attention
 Camade de attention que pode ser uma cabeça ou 2 cabeças.
+
+
+
+# Livros Gratuitos
+
+[Projeto Gutenberg](https://www.gutenberg.org/browse/languages/pt)
