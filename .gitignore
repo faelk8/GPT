@@ -175,3 +175,6 @@ cython_debug/
 
 
 LLMs-from-scratch-main
+*.pdf
+*.pth
+*.safetensors
