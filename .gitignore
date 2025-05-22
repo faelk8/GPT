@@ -178,3 +178,5 @@ LLMs-from-scratch-main
 *.pdf
 *.pth
 *.safetensors
+
+src/models/gpt2
