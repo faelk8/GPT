@@ -22,3 +22,14 @@ Camade de attention que pode ser uma cabeça ou 2 cabeças.
 # Livros Gratuitos
 
 [Projeto Gutenberg](https://www.gutenberg.org/browse/languages/pt)
+
+
+# Spam
+* Diferentes categorias de fine-tuning 
+* Preparando o conjunto de dados
+* Criando carregadores de dados
+* Inicializando um modelo com pesos pré-treinado
+* Adicionando uma classification head
+* Cálculo da perda e precisão da classificação
+* Ajustando o modelo em dados supervisionados
+* Usando o LLM como um classificador de spam
