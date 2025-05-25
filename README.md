@@ -19,12 +19,9 @@ Camade de attention que pode ser uma cabeça ou 2 cabeças.
 
 
 
-# Livros Gratuitos
+# 06 - Spam
+Detecção de spam com models pré treinados utilizando LLM.
 
-[Projeto Gutenberg](https://www.gutenberg.org/browse/languages/pt)
-
-
-# Spam
 * Diferentes categorias de fine-tuning 
 * Preparando o conjunto de dados
 * Criando carregadores de dados
@@ -33,3 +30,7 @@ Camade de attention que pode ser uma cabeça ou 2 cabeças.
 * Cálculo da perda e precisão da classificação
 * Ajustando o modelo em dados supervisionados
 * Usando o LLM como um classificador de spam
+
+# Referência
+
+Livros gratuitos para download: [Projeto Gutenberg](https://www.gutenberg.org/browse/languages/pt)
