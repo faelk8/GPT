@@ -181,5 +181,5 @@ LLMs-from-scratch-main
 *.txt
 
 src/gpt2
-data
+data/*
 gpt2
