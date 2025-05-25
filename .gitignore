@@ -180,6 +180,11 @@ LLMs-from-scratch-main
 *.safetensors
 *.txt
 
+.chainlit
+.files
+
+
 src/gpt2
 data/*
 gpt2
+src/save

@@ -15,21 +15,23 @@ BPE quebra palavras individuais em caracteres.
 
 
 # 02.01-Attention
-Camade de attention que pode ser uma cabeça ou 2 cabeças.
-
-
+Camada de attention que pode ser uma cabeça ou 2 cabeças.
 
 # 06 - Spam
-Detecção de spam com models pré treinados utilizando LLM.
+Detecção de spam com modelo pré treinados utilizando LLM.
 
-* Diferentes categorias de fine-tuning 
 * Preparando o conjunto de dados
-* Criando carregadores de dados
+* Criando um carregador de dados
 * Inicializando um modelo com pesos pré-treinado
 * Adicionando uma classification head
 * Cálculo da perda e precisão da classificação
 * Ajustando o modelo em dados supervisionados
 * Usando o LLM como um classificador de spam
+
+`Para testar com interface visual.`
+```python
+chainlit run 06.00-app.py
+```
 
 # Referência
 
