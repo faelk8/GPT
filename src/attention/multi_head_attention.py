@@ -3,6 +3,43 @@ import torch.nn as nn
 
 
 class MultiHeadAttention(nn.Module):
+    """
+    Implementa a atenção multi-cabeça conforme usado em Transformers.
+
+    Esta camada permite que o modelo aprenda a focar em diferentes partes da sequência de entrada
+    simultaneamente, dividindo a representação em múltiplas "cabeças" de atenção.
+
+    Parâmetros:
+    -----------
+    d_in : int
+        Dimensão da entrada por token.
+    d_out : int
+        Dimensão da saída por token (deve ser divisível pelo número de cabeças).
+    context_length : int
+        Comprimento máximo do contexto (sequência), usado para criar máscara causal.
+    dropout : float
+        Taxa de dropout aplicada aos pesos de atenção.
+    num_heads : int
+        Número de cabeças de atenção.
+    qkv_bias : bool, opcional (default=False)
+        Se True, adiciona bias às projeções lineares de Q, K e V.
+
+    Método forward(x):
+    -----------------
+    Executa o passo de atenção multi-cabeça.
+
+    Parâmetros:
+    -----------
+    x : torch.Tensor
+        Tensor de entrada com forma (batch_size, num_tokens, d_in).
+
+    Retorna:
+    --------
+    torch.Tensor
+        Tensor de saída com forma (batch_size, num_tokens, d_out),
+        resultante da concatenação das atenções das várias cabeças e projeção final.
+    """
+
     def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
         super().__init__()
 
@@ -21,16 +58,31 @@ class MultiHeadAttention(nn.Module):
 
         # Camada linear final para projetar a concatenação das cabeças de volta para d_out
         self.out_proj = nn.Linear(d_out, d_out)
-
         self.dropout = nn.Dropout(dropout)
 
         # Máscara causal (superior triangular) para impedir que tokens "vejam o futuro"
-        self.register_buffer(
-            "mask",
-            torch.triu(torch.ones(context_length, context_length), diagonal=1)
-        )
+        self.register_buffer("mask", torch.triu(
+            torch.ones(context_length, context_length), diagonal=1))
 
     def forward(self, x):
+        """
+        Realiza a atenção multi-cabeça.
+
+        Passos:
+        - Projeta a entrada para consultas (Q), chaves (K) e valores (V).
+        - Divide Q, K, V em múltiplas cabeças para atenção paralela.
+        - Calcula as pontuações de atenção (produto escalar QK^T).
+        - Aplica máscara causal para evitar que tokens vejam tokens futuros.
+        - Normaliza pontuações com softmax e aplica dropout.
+        - Calcula o vetor contexto ponderando V pelos pesos de atenção.
+        - Recombina as cabeças e aplica a projeção final.
+
+        Args:
+            x (torch.Tensor): Entrada (batch_size, num_tokens, d_in).
+
+        Returns:
+            torch.Tensor: Saída (batch_size, num_tokens, d_out).
+        """
         b, num_tokens, d_in = x.shape
 
         # Projeta as entradas em Q, K e V de dimensão (b, num_tokens, d_out)
@@ -67,7 +119,7 @@ class MultiHeadAttention(nn.Module):
         context_vec = context_vec.transpose(1, 2)
 
         # Concatena as cabeças em uma única dimensão: (b, num_tokens, d_out)
-        context_vec = context_vec.contiguous().view(b, num_tokens, self.d_out)
+        context_vec = context_vec.reshape(b, num_tokens, self.d_out)
 
         # Projeção final (opcional) para misturar as saídas das cabeças
         context_vec = self.out_proj(context_vec)

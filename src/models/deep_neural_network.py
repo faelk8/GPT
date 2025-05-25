@@ -1,10 +1,38 @@
 import torch
 import torch.nn as nn
 
-from layer.gelu import GELU
+from activation.gelu import GELU
 
 
 class ExampleDeepNeuralNetwork(nn.Module):
+    """
+    Exemplo de rede neural profunda com múltiplas camadas lineares seguidas de ativação GELU.
+    Permite a ativação opcional de conexões de atalho (residuais) entre as camadas para facilitar o treinamento.
+
+    Parâmetros:
+    -----------
+    layer_sizes : list[int]
+        Lista com os tamanhos das camadas, onde cada par consecutivo define a entrada e saída de cada camada Linear.
+        Por exemplo, [input_dim, hidden1, hidden2, ..., output_dim].
+    use_shortcut : bool
+        Flag para ativar ou desativar conexões de atalho (residuais) entre as camadas.
+
+    Método forward(x):
+    -----------------
+    Executa o forward pass da rede aplicando cada camada sequencialmente. Se use_shortcut estiver ativado
+    e a entrada e saída da camada tiverem a mesma forma, o resultado da camada será somado à entrada (residual).
+
+    Parâmetros:
+    -----------
+    x : torch.Tensor
+        Tensor de entrada para a rede.
+
+    Retorna:
+    --------
+    torch.Tensor
+        Tensor resultante da passagem pela rede.
+    """
+
     def __init__(self, layer_sizes, use_shortcut):
         super().__init__()
         # Ativa ou desativa conexões de atalho (residuais)

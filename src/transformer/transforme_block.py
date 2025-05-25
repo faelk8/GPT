@@ -6,6 +6,31 @@ from layer.layer_norm import LayerNorm
 
 
 class TransformerBlock(nn.Module):
+    """
+    Implementa um bloco do Transformer conforme descrito no paper "Attention is All You Need".
+
+    Este bloco é composto por:
+    - Atenção multi-cabeças com normalização e conexão residual (pré-norm)
+    - Feed-forward (MLP) com normalização e conexão residual
+    - Dropout aplicado após atenção e MLP
+
+    Parâmetros:
+    - cfg (dict): Dicionário de configuração contendo:
+        - "emb_dim": dimensão dos embeddings
+        - "context_length": tamanho da sequência (janela de atenção)
+        - "n_heads": número de cabeças de atenção
+        - "drop_rate": taxa de dropout
+        - "qkv_bias": se deve usar bias nas projeções QKV
+
+    Métodos:
+    - forward(x): Processa uma sequência de embeddings com atenção + MLP com skip connections.
+
+    Exemplo:
+    >>> block = TransformerBlock(cfg)
+    >>> x = torch.randn(batch_size, seq_len, emb_dim)
+    >>> y = block(x)
+    """
+
     def __init__(self, cfg):
         super().__init__()
         # Módulo de atenção multi-cabeças
@@ -32,6 +57,15 @@ class TransformerBlock(nn.Module):
         self.drop_shortcut = nn.Dropout(cfg["drop_rate"])
 
     def forward(self, x):
+        """
+        Executa o bloco Transformer com atenção e MLP.
+
+        Parâmetros:
+        - x (torch.Tensor): Tensor de entrada com forma [batch_size, seq_len, emb_dim]
+
+        Retorna:
+        - torch.Tensor: Tensor transformado com mesma forma da entrada.
+        """
         # === Bloco de Atenção com conexão residual ===
         shortcut = x                  # Guarda a entrada para conexão residual
         x = self.norm1(x)             # Normalização antes da atenção
