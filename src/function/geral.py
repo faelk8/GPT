@@ -340,3 +340,147 @@ def random_split(df, train_frac, validation_frac):
     test_df = df[validation_end:]
 
     return train_df, validation_df, test_df
+
+
+def generate(model, idx, max_new_tokens, context_size, temperature=0.0, top_k=None, eos_id=None):
+    """
+    Gera uma sequência de tokens a partir de uma entrada inicial (`idx`) usando um modelo autoregressivo.
+
+    Parâmetros:
+    - model: modelo de linguagem (ex: Transformer) que recebe tokens e retorna logits.
+    - idx (torch.Tensor): tensor de entrada de tokens com shape (batch_size, seq_len).
+    - max_new_tokens (int): número máximo de novos tokens a serem gerados.
+    - context_size (int): número de tokens do contexto usado na entrada do modelo.
+    - temperature (float): fator de aleatoriedade para amostragem (0.0 = determinístico).
+    - top_k (int | None): se fornecido, aplica top-k sampling (limita a amostragem aos `k` tokens mais prováveis).
+    - eos_id (int | None): se fornecido, para a geração se o token `eos_id` for gerado.
+
+    Retorna:
+    - idx (torch.Tensor): sequência original expandida com até `max_new_tokens` tokens gerados.
+    """
+
+    # Laço principal de geração: um novo token por iteração, até atingir max_new_tokens
+    for _ in range(max_new_tokens):
+        # Seleciona apenas os últimos `context_size` tokens para alimentar o modelo
+        idx_cond = idx[:, -context_size:]
+
+        # Desativa o cálculo do gradiente para economizar memória e acelerar a inferência
+        with torch.no_grad():
+            # Output shape: (batch_size, seq_len, vocab_size)
+            logits = model(idx_cond)
+
+        # Pegamos apenas os logits do último token gerado
+        logits = logits[:, -1, :]  # Shape: (batch_size, vocab_size)
+
+        # Aplica top-k sampling se top_k for fornecido
+        if top_k is not None:
+            # Obtém os `top_k` logits mais altos e seus valores
+            top_logits, _ = torch.topk(logits, top_k)
+            min_val = top_logits[:, -1]  # menor valor entre os top_k
+
+            # Zera (coloca -inf) todos os logits que não estão entre os top_k
+            logits = torch.where(
+                logits < min_val,
+                torch.tensor(float('-inf')).to(logits.device),
+                logits
+            )
+
+        # Aplica a temperatura, se maior que zero
+        if temperature > 0.0:
+            logits = logits / temperature  # escala os logits
+
+            # Converte logits em probabilidades com softmax
+            probs = torch.softmax(logits, dim=-1)
+
+            # Amostra um token da distribuição (estocástico)
+            idx_next = torch.multinomial(
+                probs, num_samples=1)  # Shape: (batch_size, 1)
+
+        else:
+            # Se temperatura = 0, escolhe o token com maior probabilidade (determinístico)
+            # Shape: (batch_size, 1)
+            idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+
+        # Se um token de fim de sequência (`eos_id`) for gerado, interrompe a geração
+        if eos_id is not None and torch.all(idx_next == eos_id):
+            break
+
+        # Anexa o novo token gerado à sequência existente
+        # Shape: (batch_size, seq_len + 1)
+        idx = torch.cat((idx, idx_next), dim=1)
+
+    # Retorna a sequência completa (original + tokens gerados)
+    return idx
+
+
+def custom_collate_fn(
+    batch,
+    pad_token_id=50256,
+    ignore_index=-100,
+    allowed_max_length=None,
+    device="cpu"
+):
+    """
+    Função personalizada para preparação (collate) de lotes de dados para treinamento de modelos de linguagem.
+
+    Esta função realiza:
+    - Padding das sequências no lote até o tamanho da maior sequência + token de término.
+    - Criação de pares (input, target) deslocados.
+    - Máscara para ignorar perdas sobre os tokens de padding.
+    - Truncamento opcional para um tamanho máximo de sequência.
+
+    Parâmetros:
+    - batch (List[List[int]]): Lista de sequências de tokens (listas de inteiros).
+    - pad_token_id (int): ID do token de padding (padrão: 50256 para <|endoftext|> do GPT-2).
+    - ignore_index (int): Índice a ser ignorado na função de perda (usado para ignorar o padding).
+    - allowed_max_length (int | None): Tamanho máximo permitido para a sequência (input e target).
+    - device (str): Dispositivo de destino para os tensores (ex: "cuda" ou "cpu").
+
+    Retorna:
+    - inputs_tensor (torch.Tensor): Tensor dos inputs, shape (batch_size, seq_len).
+    - targets_tensor (torch.Tensor): Tensor dos targets (deslocados), shape (batch_size, seq_len).
+    """
+
+    # Descobre o tamanho máximo da sequência no lote (adicionando 1 para o token <|endoftext|>)
+    batch_max_length = max(len(item) + 1 for item in batch)
+
+    # Listas para armazenar os tensores resultantes
+    inputs_lst, targets_lst = [], []
+
+    # Itera sobre cada item do lote
+    for item in batch:
+        new_item = item.copy()  # Evita modificar a lista original
+
+        # Adiciona o token <|endoftext|> no final
+        new_item += [pad_token_id]
+
+        # Aplica padding até que todos tenham o mesmo tamanho
+        padded = new_item + [pad_token_id] * (batch_max_length - len(new_item))
+
+        # Cria input truncando o último token
+        inputs = torch.tensor(padded[:-1])  # (t0, ..., tn)
+        # Cria target deslocando para a direita
+        targets = torch.tensor(padded[1:])  # (t1, ..., tn+1)
+
+        # Cria uma máscara para encontrar os índices de padding nos targets
+        mask = targets == pad_token_id
+        indices = torch.nonzero(mask).squeeze()
+
+        # Substitui todos os tokens de padding (exceto o primeiro) por `ignore_index` para ignorar na perda
+        if indices.numel() > 1:
+            targets[indices[1:]] = ignore_index
+
+        # Opcionalmente corta a sequência se `allowed_max_length` for especificado
+        if allowed_max_length is not None:
+            inputs = inputs[:allowed_max_length]
+            targets = targets[:allowed_max_length]
+
+        # Adiciona os tensores às listas
+        inputs_lst.append(inputs)
+        targets_lst.append(targets)
+
+    # Empilha as listas e transfere para o dispositivo especificado (CPU ou GPU)
+    inputs_tensor = torch.stack(inputs_lst).to(device)
+    targets_tensor = torch.stack(targets_lst).to(device)
+
+    return inputs_tensor, targets_tensor
