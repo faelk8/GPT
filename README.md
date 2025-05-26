@@ -6,6 +6,11 @@
 </div>
 
 
+# 🧠 Sobre este Repositório
+Este repositório é um guia estruturado e prático sobre os fundamentos e a implementação do modelo GPT (Generative Pre-trained Transformer). Nele, exploramos desde os conceitos iniciais como tokenização e tokens especiais, até os componentes centrais da arquitetura Transformer, como self-attention, multi-head attention e máscara causal.
+
+Além disso, demonstramos a execução do GPT-2 com exemplos de tokenização, geração de texto, e estratégias de avaliação e treinamento de modelos generativos, incluindo o uso de pesos pré-treinados da OpenAI.
+
 ## 📚 Menu
 <ul>
   <li><a href="#01">🔤 01 - Tokenização</a>
