@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from transformer.transforme_block import TransformerBlock
+from transformer.transformer_block import TransformerBlock
 from layer.layer_norm import LayerNorm
 
 
