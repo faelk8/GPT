@@ -484,3 +484,76 @@ def custom_collate_fn(
     targets_tensor = torch.stack(targets_lst).to(device)
 
     return inputs_tensor, targets_tensor
+
+
+def generate5(model, idx, max_new_tokens, context_size, temperature=0.0, top_k=None, eos_id=None):
+    """
+    Gera uma sequência de texto usando um modelo LLM autoregressivo (como GPT).
+
+    Parâmetros:
+    -----------
+    model : torch.nn.Module
+        Modelo de linguagem treinado, que recebe índices de tokens e retorna logits.
+    idx : torch.Tensor
+        Tensor de entrada contendo os tokens iniciais (shape: [batch_size, seq_len]).
+    max_new_tokens : int
+        Número máximo de novos tokens a serem gerados.
+    context_size : int
+        Tamanho do contexto a ser considerado (limite da janela de entrada).
+    temperature : float, opcional
+        Escala aplicada aos logits antes da amostragem (valor padrão: 0.0, sem aleatoriedade).
+    top_k : int, opcional
+        Se definido, restringe a amostragem apenas ao top_k tokens com maior probabilidade.
+    eos_id : int, opcional
+        ID do token de fim de sequência. Se encontrado, a geração para antecipadamente.
+
+    Retorna:
+    --------
+    idx : torch.Tensor
+        Sequência completa (tokens iniciais + tokens gerados).
+    """
+    for _ in range(max_new_tokens):
+        # Garante que só os últimos 'context_size' tokens sejam usados como entrada
+        idx_cond = idx[:, -context_size:]
+
+        # Desativa o cálculo de gradiente para economia de memória e velocidade
+        with torch.no_grad():
+            # shape: (batch_size, seq_len, vocab_size)
+            logits = model(idx_cond)
+
+        # Mantém apenas os logits do último token gerado
+        logits = logits[:, -1, :]  # shape: (batch_size, vocab_size)
+
+        if top_k is not None:
+            # Obtém os top_k maiores valores de logit
+            top_logits, _ = torch.topk(logits, top_k)
+            min_val = top_logits[:, -1]  # Valor mínimo entre os top_k
+
+            # Substitui logits menores que o mínimo com -inf (remoção da probabilidade)
+            logits = torch.where(logits < min_val,
+                                 torch.tensor(float("-inf")).to(logits.device),
+                                 logits)
+
+        if temperature > 0.0:
+            # Escala os logits para controlar a aleatoriedade da geração
+            logits = logits / temperature
+
+            # Converte logits em probabilidades com softmax
+            probs = torch.softmax(logits, dim=-1)
+
+            # Amostra o próximo token com base na distribuição de probabilidade
+            idx_next = torch.multinomial(
+                probs, num_samples=1)  # shape: (batch_size, 1)
+
+        else:
+            # Seleciona o token com maior probabilidade
+            # shape: (batch_size, 1)
+            idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+
+        if eos_id is not None and torch.any(idx_next == eos_id):
+            break  # Interrompe a geração ao encontrar o token de fim
+
+        # shape: (batch_size, seq_len + 1)
+        idx = torch.cat((idx, idx_next), dim=1)
+
+    return idx
