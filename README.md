@@ -38,23 +38,6 @@ No GPT-2, essa atenção multi-cabeça é uma das razões pela qual ele entende 
 ⚙️ Exemplo prático
 Se você estiver usando n_heads=2, o modelo divide o vetor de entrada em duas partes, aplica a atenção separadamente em cada uma, e depois concatena os resultados. Isso melhora a capacidade do modelo de capturar diferentes tipos de dependências linguísticas simultaneamente.
 
-# ✉️ 06 - Spam
-Detecção de Spam com LLM (GPT-2 Fine-Tuned)
-Este projeto utiliza um modelo de linguagem grande (LLM) baseado no GPT-2 para a tarefa de detecção de spam. Combinando a capacidade contextual dos modelos de linguagem com uma camada de classificação supervisionada, é possível transformar o GPT-2 em um poderoso classificador binário (spam ou não spam).
-
-* Preparando o conjunto de dados
-* Criando um carregador de dados
-* Inicializando um modelo com pesos pré-treinado
-* Adicionando uma classification head
-* Cálculo da perda e precisão da classificação
-* Ajustando o modelo em dados supervisionados
-* Usando o LLM como um classificador de spam
-
-`Para testar com interface visual.`
-```python
-chainlit run 06.00-app.py
-```
-
 # 🧠 3 - O desafio de modelar sequências longas
 Modelos de linguagem precisam lidar com sequências de texto de comprimento variável, mas muitos métodos tradicionais (como RNNs) sofrem com limitações no alcance de dependências longas — ou seja, perdem informações importantes quando os tokens estão muito distantes uns dos outros.<br>
 O mecanismo de self-attention (captura dependências com mecanismos de atenção) resolve esse problema ao permitir que cada palavra "atenda" a todas as outras palavras da sequência, capturando relacionamentos globais entre os tokens de forma eficiente.
@@ -106,7 +89,46 @@ Empilhando várias camadas de multi-head attention, o modelo ganha profundidade 
 As implementações modernas encapsulam a lógica de atenção em classes compactas, como SelfAttention, CausalSelfAttention e MultiHeadAttention, permitindo reutilização e legibilidade do código.
 
 
+# 🔄 4 - Execução do Modelo GPT-2 com Tokenização e Geração de Texto
+Este módulo demonstra como realizar a tokenização de frases, configurar um modelo GPT-2 com parâmetros específicos, e gerar novos textos a partir de um prompt inicial utilizando um modelo de linguagem (LLM) pré-treinado.
 
+### 🧠 Tokenização
+Textos de entrada são transformados em tokens numéricos utilizando o tokenizer compatível com o GPT-2. Esses tokens representam as palavras e subpalavras de forma que o modelo possa processá-los. São adicionados tokens especiais, como início e fim de sequência, e os textos são convertidos em tensores para posterior uso no modelo.
+
+### ⚙️ Configuração do Modelo
+É criada uma configuração baseada no GPT-2 de 124 milhões de parâmetros, contendo:
+* Tamanho do vocabulário
+* Comprimento máximo de contexto (número de tokens por entrada)
+* Dimensão dos embeddings
+* Número de camadas de Transformer e cabeças de atenção
+* Taxa de dropout, entre outros
+
+Essa configuração permite inicializar o modelo com as mesmas características do GPT-2 original.
+
+### 🚀 Execução e Saída
+O modelo é instanciado com os pesos definidos e executado sobre o batch de entrada, retornando uma matriz de logits — representações de probabilidade de cada próximo token possível para cada posição da sequência.
+
+### ✍️ Geração de Texto
+A partir de um prompt inicial, o modelo é capaz de prever a próxima palavra/token com base no contexto anterior. Um loop iterativo permite a geração de novos tokens até atingir um número máximo ou um token de parada. O resultado final é decodificado de volta para texto compreensível.
+
+Essa etapa mostra o pipeline completo de entrada, processamento e geração de saída textual, simulando o comportamento básico de um modelo de linguagem autoregressivo como o GPT-2.
+
+# ✉️ 06 - Spam
+Detecção de Spam com LLM (GPT-2 Fine-Tuned)
+Este projeto utiliza um modelo de linguagem grande (LLM) baseado no GPT-2 para a tarefa de detecção de spam. Combinando a capacidade contextual dos modelos de linguagem com uma camada de classificação supervisionada, é possível transformar o GPT-2 em um poderoso classificador binário (spam ou não spam).
+
+* Preparando o conjunto de dados
+* Criando um carregador de dados
+* Inicializando um modelo com pesos pré-treinado
+* Adicionando uma classification head
+* Cálculo da perda e precisão da classificação
+* Ajustando o modelo em dados supervisionados
+* Usando o LLM como um classificador de spam
+
+`Para testar com interface visual.`
+```python
+chainlit run 06.00-app.py
+```
 
 # 💪 07 - Intruções para Treinamento
 Este projeto realiza o fine-tuning de um modelo GPT-2 (ex: gpt2-small, gpt2-medium, etc.) para a tarefa de pergunta e resposta baseada em instruções (Instruction Tuning).
@@ -121,7 +143,10 @@ Ao contrário do treinamento tradicional que se baseia apenas na predição da p
 * A avaliação envolve a extração das respostas do modelo em um conjunto de teste e sua pontuação (por exemplo, usando outro LLM).
 
 
+
+
 # Referência
 Build a Large Language Model - Sebastian Raschka<br>
 Livros gratuitos para download: [Projeto Gutenberg](https://www.gutenberg.org/browse/languages/pt)<br>
 Conjunto de dados utilizado para treinamento com pergunta e respostas: [Alpaca dataset - Stanford](https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json)
+
