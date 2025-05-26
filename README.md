@@ -1,8 +1,50 @@
 
 
 
+## 📚 Menu de Navegação
 
-# 🔤 01 — Tokenização
+- [🔤 01 - Tokenização](#-01---tokenização)
+  - [🔖 Tokens especiais](#-tokens-especiais)
+  - [🧬 Técnica de Tokenização — Byte Pair Encoding (BPE)](#-técnica-de-tokenização--byte-pair-encoding-bpe)
+
+- [🧠 02 - Attention](#-02---attention)
+  - [🧩 Como funciona a atenção?](#-como-funciona-a-atenção)
+  - [🎯 Multi-head Attention](#-multi-head-attention)
+  - [⚙️ Exemplo prático](#-exemplo-prático)
+
+- [🧠 3 - Attention o desafio de modelar sequências longas](#-3---attention-o-desafio-de-modelar-sequências-longas)
+  - [🔁 Self-Attention: Atenção a diferentes partes da entrada](#-self-attention-atenção-a-diferentes-partes-da-entrada)
+  - [✅ Implementação simples sem pesos treináveis](#-implementação-simples-sem-pesos-treináveis)
+  - [📊 Cálculo de pesos de atenção](#-cálculo-de-pesos-de-atenção)
+  - [⚙️ Implementação com pesos treináveis](#-implementação-com-pesos-treináveis)
+  - [🕶️ Causal Attention: ocultando palavras futuras](#-causal-attention-ocultando-palavras-futuras)
+  - [🔒 Aplicação da máscara causal](#-aplicação-da-máscara-causal)
+  - [🌧️ Dropout na atenção](#-dropout-na-atenção)
+  - [🧩 Multi-Head Attention: atenção paralela](#-multi-head-attention-atenção-paralela)
+  - [🧱 Stacking de camadas de atenção](#-stacking-de-camadas-de-atenção)
+  - [📦 Implementação Compacta](#-implementação-compacta)
+
+- [🔄 4 - Execução do Modelo GPT-2 com Tokenização e Geração de Texto](#-4---execução-do-modelo-gpt-2-com-tokenização-e-geração-de-texto)
+  - [🧠 Tokenização](#-tokenização)
+  - [⚙️ Configuração do Modelo](#-configuração-do-modelo)
+  - [🚀 Execução e Saída](#-execução-e-saída)
+  - [✍️ Geração de Texto](#-geração-de-texto)
+
+- [✨ Avaliação e Treinamento de Modelos de Texto Generativo](#-avaliação-e-treinamento-de-modelos-de-texto-generativo)
+  - [⭐ Avaliação de Modelos de Texto Generativo](#-avaliação-de-modelos-de-texto-generativo)
+  - [💪 Treinamento de um LLM (Large Language Model)](#-treinamento-de-um-llm-large-language-model)
+  - [♟️ Estratégias de Decodificação para Controlar Aleatoriedade](#-estratégias-de-decodificação-para-controlar-aleatoriedade)
+  - [🏗️ Carregamento de Pesos Pré-Treinados da OpenAI](#-carregamento-de-pesos-pré-treinados-da-openai)
+
+- [✉️ 06 - Spam](#-06---spam)
+
+- [💪 07 - Intruções para Treinamento](#-07---intruções-para-treinamento)
+
+- [🔗 Referência](#referência)
+
+
+
+# 🔤 01 - Tokenização
 Antes que um modelo de linguagem possa processar texto, é necessário transformar as palavras em tokens, ou seja, converter o texto em unidades menores que o modelo consegue entender e manipular. Isso é feito através de um tokenizer. Após o processamento, os tokens podem ser convertidos de volta para texto, permitindo reconstruir a saída gerada pelo modelo em linguagem natural.
 
 ### 🔖 Tokens especiais
@@ -24,10 +66,10 @@ Esse método é eficiente porque reduz o vocabulário necessário e permite ao m
 Camada de Atenção (Attention Layer)
 O modelo GPT-2 é baseado em uma arquitetura chamada Transformer, cujo principal componente é a camada de atenção. Essa camada permite que o modelo "preste atenção" em diferentes partes da entrada enquanto está processando uma palavra ou token, capturando relações de contexto de curto e longo alcance.
 
-🧩 Como funciona a atenção?
+### 🧩 Como funciona a atenção?
 Durante o treinamento, cada token da entrada é transformado em vetores chamados de query (Q), key (K) e value (V). A atenção é calculada comparando as queries de um token com as keys dos outros tokens — permitindo que o modelo decida quais palavras são mais relevantes para prever a próxima.
 
-🎯 Multi-head Attention
+### 🎯 Multi-head Attention
 Em vez de ter uma única "cabeça de atenção", o Transformer pode usar várias cabeças (como 2, 4, 8 ou mais). Cada cabeça aprende padrões diferentes de dependência entre palavras. Por exemplo:
 
 * 1 cabeça: o modelo foca em um único padrão de contexto.
@@ -35,10 +77,10 @@ Em vez de ter uma única "cabeça de atenção", o Transformer pode usar várias
 
 No GPT-2, essa atenção multi-cabeça é uma das razões pela qual ele entende tão bem o contexto de uma frase, mesmo quando as palavras estão distantes.
 
-⚙️ Exemplo prático
+### ⚙️ Exemplo prático
 Se você estiver usando n_heads=2, o modelo divide o vetor de entrada em duas partes, aplica a atenção separadamente em cada uma, e depois concatena os resultados. Isso melhora a capacidade do modelo de capturar diferentes tipos de dependências linguísticas simultaneamente.
 
-# 🧠 3 - O desafio de modelar sequências longas
+# 🧠 3 - Attention o desafio de modelar sequências longas
 Modelos de linguagem precisam lidar com sequências de texto de comprimento variável, mas muitos métodos tradicionais (como RNNs) sofrem com limitações no alcance de dependências longas — ou seja, perdem informações importantes quando os tokens estão muito distantes uns dos outros.<br>
 O mecanismo de self-attention (captura dependências com mecanismos de atenção) resolve esse problema ao permitir que cada palavra "atenda" a todas as outras palavras da sequência, capturando relacionamentos globais entre os tokens de forma eficiente.
 
@@ -58,7 +100,7 @@ O cálculo dos pesos segue os seguintes passos:
 * Aplicação sobre os valores (Value)
 * Geração da nova representação dos tokens
 
-## ⚙️ Implementação com pesos treináveis
+### ⚙️ Implementação com pesos treináveis
 A versão mais completa da self-attention utiliza matrizes de pesos aprendíveis para transformar os tokens de entrada em Q, K e V. Isso torna o mecanismo mais expressivo e ajustável.
 
 ### 🕶️ Causal Attention: ocultando palavras futuras
@@ -88,7 +130,6 @@ Empilhando várias camadas de multi-head attention, o modelo ganha profundidade 
 ### 📦 Implementação Compacta
 As implementações modernas encapsulam a lógica de atenção em classes compactas, como SelfAttention, CausalSelfAttention e MultiHeadAttention, permitindo reutilização e legibilidade do código.
 
-
 # 🔄 4 - Execução do Modelo GPT-2 com Tokenização e Geração de Texto
 Este módulo demonstra como realizar a tokenização de frases, configurar um modelo GPT-2 com parâmetros específicos, e gerar novos textos a partir de um prompt inicial utilizando um modelo de linguagem (LLM) pré-treinado.
 
@@ -112,6 +153,27 @@ O modelo é instanciado com os pesos definidos e executado sobre o batch de entr
 A partir de um prompt inicial, o modelo é capaz de prever a próxima palavra/token com base no contexto anterior. Um loop iterativo permite a geração de novos tokens até atingir um número máximo ou um token de parada. O resultado final é decodificado de volta para texto compreensível.
 
 Essa etapa mostra o pipeline completo de entrada, processamento e geração de saída textual, simulando o comportamento básico de um modelo de linguagem autoregressivo como o GPT-2.
+
+# ✨ Avaliação e Treinamento de Modelos de Texto Generativo
+Esta etapa do projeto explora como construir, avaliar, treinar e personalizar modelos de linguagem baseados na arquitetura GPT (Generative Pretrained Transformer). A proposta é trabalhar desde a geração de texto com modelos simples até o uso de modelos pré-treinados, passando por estratégias de decodificação e técnicas de ajuste fino.
+
+### ⭐ Avaliação de Modelos de Texto Generativo
+Nesta seção, é demonstrado como gerar texto automaticamente a partir de um prompt inicial utilizando um modelo de linguagem. O processo consiste em fornecer uma frase inicial e deixar o modelo prever os próximos tokens. A avaliação do desempenho pode ser feita calculando a perda (loss) associada às previsões, além de comparar os resultados gerados com os dados reais.
+
+### 💪 Treinamento de um LLM (Large Language Model)
+Esta parte mostra como treinar um modelo GPT a partir do zero. Para isso, é feita a preparação dos dados com divisão entre conjuntos de treinamento e validação, configuração dos hiperparâmetros do modelo e uso de otimizadores adequados. São utilizadas versões ajustadas do GPT-2, com diferentes tamanhos e capacidades.
+
+### ♟️ Estratégias de Decodificação para Controlar Aleatoriedade
+Durante a geração de texto, o modelo pode seguir diferentes estratégias para balancear criatividade e coerência. As principais técnicas abordadas são:
+* Temperature Scaling: altera a distribuição de probabilidade dos próximos tokens, tornando a geração mais ou menos imprevisível.
+* Top-k Sampling: limita a escolha dos próximos tokens a um conjunto com os k mais prováveis, evitando escolhas muito aleatórias.
+
+Essas técnicas permitem personalizar a geração conforme o objetivo, seja ele mais criativo ou mais conservador.
+
+
+### 🏗️ Carregamento de Pesos Pré-Treinados da OpenAI
+Por fim, é demonstrado como carregar modelos já treinados pela OpenAI, como o GPT-2, diretamente no modelo implementado. Isso permite aproveitar redes neurais treinadas em grandes conjuntos de dados, sem necessidade de treinar do zero, economizando tempo e recursos computacionais.
+
 
 # ✉️ 06 - Spam
 Detecção de Spam com LLM (GPT-2 Fine-Tuned)
