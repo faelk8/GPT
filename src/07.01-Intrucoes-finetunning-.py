@@ -77,9 +77,6 @@ tokenizer = tiktoken.get_encoding("gpt2")
 # Define o dispositivo como GPU (cuda) se disponível, senão CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Define novamente o dispositivo (redundante, pode remover uma das linhas acima)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # Cria uma função de collation customizada, fixando os parâmetros device e tamanho máximo
 customized_collate_fn = partial(
     custom_collate_fn,            # Função que prepara os batches
